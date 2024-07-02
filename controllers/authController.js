@@ -1,108 +1,76 @@
-const { validationResult } = require('express-validator');
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+const University = require('../models/university');
+const Dorm = require('../models/dorm');
+const StudyField = require('../models/studyField');
 
-exports.getLogin = (req, res, next) => {
-    if (req.user) {
-        return res.redirect('/posts');
-    }
-    res.render('auth/login', {
-        title: 'Login',
-        errorMessage: null
-    });
+exports.getRegister = async (req, res) => {
+    const universities = await University.findAll();
+    const dorms = await Dorm.findAll();
+    const studyFields = await StudyField.findAll();
+
+    res.render('auth/register', { universities, dorms, studyFields });
 };
 
-exports.postLogin = async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).render('auth/login', {
-            title: 'Login',
-            errorMessage: errors.array()[0].msg
-        });
-    }
-
-    const { email, password } = req.body;
-
+exports.postRegister = async (req, res) => {
+    const { firstName, lastName, email, password, universityId, dormId, studyFieldId } = req.body;
     try {
-        const user = await User.findOne({ where: { email } });
-
-        if (!user) {
-            return res.status(401).render('auth/login', {
-                title: 'Login',
-                errorMessage: 'Invalid email or password.'
-            });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(401).render('auth/login', {
-                title: 'Login',
-                errorMessage: 'Invalid email or password.'
-            });
-        }
-
-        const token = jwt.sign(
-            { userId: user.id, email: user.email },
-            'your_secret_key',
-            { expiresIn: '1h' }
-        );
-
-        res.cookie('token', token, { httpOnly: true });
-        res.redirect('/posts');
-    } catch (err) {
-        next(err);
-    }
-};
-
-exports.getRegister = (req, res, next) => {
-    if (req.user) {
-        return res.redirect('/posts');
-    }
-    res.render('auth/register', {
-        title: 'Register',
-        errorMessage: null
-    });
-};
-
-exports.postRegister = async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(422).render('auth/register', {
-            title: 'Register',
-            errorMessage: errors.array()[0].msg
-        });
-    }
-
-    const { firstName, lastName, email, password } = req.body;
-
-    try {
-        const existingUser = await User.findOne({ where: { email } });
-
-        if (existingUser) {
-            return res.status(422).render('auth/register', {
-                title: 'Register',
-                errorMessage: 'Email already exists.'
-            });
-        }
-
         const hashedPassword = await bcrypt.hash(password, 12);
-
         const user = await User.create({
             firstName,
             lastName,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            universityId,
+            dormId,
+            studyFieldId
         });
-
-        res.redirect('/auth/login');
+        const token = jwt.sign({ userId: user.id }, 'your_secret_key');
+        res.cookie('token', token, { httpOnly: true });
+        res.redirect('/posts');
     } catch (err) {
-        next(err);
+        console.error(err);
+        res.redirect('/auth/register');
     }
 };
 
-exports.postLogout = (req, res, next) => {
+exports.getLogin = (req, res) => {
+    res.render('auth/login');
+};
+
+exports.postLogin = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.redirect('/auth/login');
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.redirect('/auth/login');
+        }
+        const token = jwt.sign({ userId: user.id }, 'your_secret_key');
+        res.cookie('token', token, { httpOnly: true });
+        res.redirect('/posts');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/auth/login');
+    }
+};
+
+exports.postLogout = (req, res) => {
     res.clearCookie('token');
     res.redirect('/auth/login');
+};
+
+exports.getDormsByUniversity = async (req, res) => {
+    const { universityId } = req.params;
+    try {
+        const dorms = await Dorm.findAll({ where: { universityId } });
+        res.status(200).json(dorms);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 };

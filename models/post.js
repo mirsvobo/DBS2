@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 const User = require('./user');
 const Category = require('./category');
@@ -6,14 +6,15 @@ const Category = require('./category');
 const Post = sequelize.define('Post', {
     title: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
     },
     content: {
         type: DataTypes.TEXT,
-        allowNull: false
+        allowNull: false,
     },
     categoryId: {
         type: DataTypes.INTEGER,
+        allowNull: true,
         references: {
             model: Category,
             key: 'id'
@@ -21,13 +22,12 @@ const Post = sequelize.define('Post', {
     },
     userId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
         references: {
             model: User,
             key: 'id'
         }
     }
-}, {
-    timestamps: true
 });
 
 Post.belongsTo(User, { foreignKey: 'userId' });

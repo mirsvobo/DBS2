@@ -20,4 +20,7 @@ router.post('/register', [
 
 router.post('/logout', authController.postLogout);
 
+// Přidáno
+router.get('/dorms/:universityId', authController.getDormsByUniversity);
+
 module.exports = router;

@@ -2,13 +2,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const sequelize = require('./config/database');
+const { sequelize, User, Category, Post, University, Dorm, StudyField } = require('./models'); // Import from models/index.js
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const userRoutes = require('./routes/userRoutes');
-const User = require('./models/user');
-const Category = require('./models/category');
 const jwt = require('jsonwebtoken');
 
 const app = express();
@@ -37,7 +35,7 @@ app.use(async (req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/posts', postRoutes);
 app.use('/comments', commentRoutes);
-app.use('/users', userRoutes);
+app.use('/users', userRoutes); // Include user routes
 
 app.get('/', (req, res, next) => {
     if (req.user) {
@@ -50,7 +48,7 @@ const initDatabase = async () => {
     try {
         await sequelize.sync({ force: false });
 
-        // Add initial categories
+        // Add initial categories if not present
         const categories = [
             { name: 'Spolujízda' },
             { name: 'Obecná nabídka' },
@@ -59,8 +57,9 @@ const initDatabase = async () => {
             { name: 'Události' },
             { name: 'Ztráty a nálezy' }
         ];
+
         for (const category of categories) {
-            await Category.create(category);
+            await Category.findOrCreate({ where: category });
         }
 
         console.log('Database synchronized');

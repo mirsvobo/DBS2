@@ -9,13 +9,23 @@ router.get(
     '/profile',
     isAuth,
     (req, res, next) => {
-        logger.info(`Get user route called for userId: ${req.user.id}`);
+        logger.info('Get user profile route called');
         next();
     },
     userController.getProfile
 );
 
-router.put(
+router.get(
+    '/:userId',
+    isAuth,
+    (req, res, next) => {
+        logger.info(`Get user route called for userId: ${req.params.userId}`);
+        next();
+    },
+    userController.getUser
+);
+
+router.post(
     '/update',
     isAuth,
     (req, res, next) => {
