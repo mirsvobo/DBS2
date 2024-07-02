@@ -9,10 +9,55 @@
         body {
             background-color: #f8f9fa;
         }
+        .navbar {
+            margin-bottom: 2rem;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .post-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
 <body>
-<div class="container mt-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">University Forum</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <% if (user) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/posts">Posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <form class="d-inline" action="/auth/logout" method="post">
+                            <button type="submit" class="btn btn-link nav-link">Logout</button>
+                        </form>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/register">Register</a>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="my-4">Posts</h2>
         <% if (user) { %>
@@ -22,7 +67,7 @@
     <div class="list-group">
         <% if (posts && posts.length > 0) { %>
             <% posts.forEach(post => { %>
-                <div class="list-group-item">
+                <div class="post-item">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1"><%= post.title %></h5>
                         <small><%= new Date(post.createdAt).toLocaleString() %></small>

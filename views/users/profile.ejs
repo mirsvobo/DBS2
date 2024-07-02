@@ -9,6 +9,9 @@
         body {
             background-color: #f8f9fa;
         }
+        .container {
+            max-width: 900px;
+        }
         .profile-container {
             background: white;
             padding: 2rem;
@@ -16,39 +19,51 @@
             box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
             margin-top: 5rem;
         }
+        .navbar {
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 <body>
-<div class="container mt-4">
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">University Forum</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/posts">Posts</a>
+                </li>
+                <li class="nav-item">
+                    <form class="d-inline" action="/auth/logout" method="post">
+                        <button type="submit" class="btn btn-link nav-link">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container">
     <div class="profile-container">
         <h2 class="my-4">Profile</h2>
-        <form action="/users/profile" method="post">
-            <div class="mb-3">
-                <label for="firstName" class="form-label">First Name</label>
-                <input type="text" class="form-control" id="firstName" name="firstName" value="<%= user.firstName %>" required>
-            </div>
-            <div class="mb-3">
-                <label for="lastName" class="form-label">Last Name</label>
-                <input type="text" class="form-control" id="lastName" name="lastName" value="<%= user.lastName %>" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email address</label>
-                <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" required>
-            </div>
-            <div class="mb-3">
-                <label for="studyField" class="form-label">Study Field</label>
-                <input type="text" class="form-control" id="studyField" name="studyField" value="<%= user.studyField %>" required>
-            </div>
-            <div class="mb-3">
-                <label for="university" class="form-label">University</label>
-                <input type="text" class="form-control" id="university" name="university" value="<%= user.university %>" required>
-            </div>
-            <div class="mb-3">
-                <label for="dorm" class="form-label">Dorm</label>
-                <input type="text" class="form-control" id="dorm" name="dorm" value="<%= user.dorm %>" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Save Changes</button>
-        </form>
+        <div class="mb-3">
+            <label for="firstName" class="form-label">First Name</label>
+            <input type="text" class="form-control" id="firstName" name="firstName" value="<%= user.firstName %>" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="lastName" class="form-label">Last Name</label>
+            <input type="text" class="form-control" id="lastName" name="lastName" value="<%= user.lastName %>" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" name="email" value="<%= user.email %>" readonly>
+        </div>
+        <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <input type="text" class="form-control" id="role" name="role" value="<%= user.role %>" readonly>
+        </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
