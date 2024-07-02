@@ -24,6 +24,14 @@
         <h2 class="my-4">Create Post</h2>
         <form action="/posts/create" method="post">
             <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="categoryId" required>
+                    <% categories.forEach(category => { %>
+                        <option value="<%= category.id %>"><%= category.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
                 <input type="text" class="form-control" id="title" name="title" required>
             </div>
