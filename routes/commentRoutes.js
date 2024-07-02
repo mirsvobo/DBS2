@@ -5,10 +5,11 @@ const isAuth = require('../middleware/isAuth');
 
 const router = express.Router();
 
-router.post('/create/:postId', isAuth, [
+router.post('/create', isAuth, [
     body('content').trim().isLength({ min: 1 }).withMessage('Content is required')
 ], commentController.createComment);
 
+router.get('/edit/:id', isAuth, commentController.getEditComment); // Přidáno
 router.post('/edit/:id', isAuth, [
     body('content').trim().isLength({ min: 1 }).withMessage('Content is required')
 ], commentController.editComment);

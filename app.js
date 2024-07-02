@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
-const commentRoutes = require('./routes/commentRoutes');
+const commentRoutes = require('./routes/commentRoutes'); // Přidáno
 const User = require('./models/user');
 const Post = require('./models/post');
 const Category = require('./models/category');
@@ -40,7 +40,7 @@ app.use(async (req, res, next) => {
 
 app.use('/auth', authRoutes);
 app.use('/posts', postRoutes);
-app.use('/comments', commentRoutes);
+app.use('/comments', commentRoutes); // Přidáno
 
 app.get('/', (req, res, next) => {
     if (req.user) {
