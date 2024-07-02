@@ -29,6 +29,10 @@ app.use('/comments', commentRoutes);
 app.use('/users', userRoutes);
 app.use('/messages', messageRoutes);
 
+app.get('/', (req, res) => {
+    res.redirect('/posts');
+});
+
 // Import models to ensure they are defined and associated properly
 const User = require('./models/user');
 const Post = require('./models/post');
