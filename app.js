@@ -5,14 +5,10 @@ const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
-const commentRoutes = require('./routes/commentRoutes'); // Přidáno
+const commentRoutes = require('./routes/commentRoutes');
+const userRoutes = require('./routes/userRoutes');
 const User = require('./models/user');
-const Post = require('./models/post');
 const Category = require('./models/category');
-const Comment = require('./models/comment');
-const StudyField = require('./models/studyField');
-const University = require('./models/university');
-const Dorm = require('./models/dorm');
 const jwt = require('jsonwebtoken');
 
 const app = express();
@@ -40,7 +36,8 @@ app.use(async (req, res, next) => {
 
 app.use('/auth', authRoutes);
 app.use('/posts', postRoutes);
-app.use('/comments', commentRoutes); // Přidáno
+app.use('/comments', commentRoutes);
+app.use('/users', userRoutes);
 
 app.get('/', (req, res, next) => {
     if (req.user) {

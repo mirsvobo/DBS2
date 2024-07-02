@@ -6,13 +6,13 @@ const logger = require('../config/logger');
 const router = express.Router();
 
 router.get(
-    '/:userId',
+    '/profile',
     isAuth,
     (req, res, next) => {
-        logger.info(`Get user route called for userId: ${req.params.userId}`);
+        logger.info(`Get user route called for userId: ${req.user.id}`);
         next();
     },
-    userController.getUser
+    userController.getProfile
 );
 
 router.put(
