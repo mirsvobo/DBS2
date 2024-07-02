@@ -1,58 +1,108 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/user');
-const logger = require('../config/logger');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-exports.register = async (req, res) => {
+exports.getLogin = (req, res, next) => {
+    if (req.user) {
+        return res.redirect('/posts');
+    }
+    res.render('auth/login', {
+        title: 'Login',
+        errorMessage: null
+    });
+};
+
+exports.postLogin = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        logger.warn('Validation failed for registration:', errors.array());
-        return res.status(422).json({ errors: errors.array() });
+        return res.status(422).render('auth/login', {
+            title: 'Login',
+            errorMessage: errors.array()[0].msg
+        });
+    }
+
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ where: { email } });
+
+        if (!user) {
+            return res.status(401).render('auth/login', {
+                title: 'Login',
+                errorMessage: 'Invalid email or password.'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).render('auth/login', {
+                title: 'Login',
+                errorMessage: 'Invalid email or password.'
+            });
+        }
+
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            'your_secret_key',
+            { expiresIn: '1h' }
+        );
+
+        res.cookie('token', token, { httpOnly: true });
+        res.redirect('/posts');
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getRegister = (req, res, next) => {
+    if (req.user) {
+        return res.redirect('/posts');
+    }
+    res.render('auth/register', {
+        title: 'Register',
+        errorMessage: null
+    });
+};
+
+exports.postRegister = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render('auth/register', {
+            title: 'Register',
+            errorMessage: errors.array()[0].msg
+        });
     }
 
     const { firstName, lastName, email, password } = req.body;
+
     try {
+        const existingUser = await User.findOne({ where: { email } });
+
+        if (existingUser) {
+            return res.status(422).render('auth/register', {
+                title: 'Register',
+                errorMessage: 'Email already exists.'
+            });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 12);
+
         const user = await User.create({
             firstName,
             lastName,
             email,
             password: hashedPassword
         });
-        logger.info('User registered successfully:', user.id);
-        res.status(201).json({ message: 'User registered!', userId: user.id });
+
+        res.redirect('/auth/login');
     } catch (err) {
-        logger.error('User registration failed:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 
-exports.login = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ where: { email } });
-        if (!user) {
-            logger.warn('Login failed: invalid email');
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
-
-        const isEqual = await bcrypt.compare(password, user.password);
-        if (!isEqual) {
-            logger.warn('Login failed: invalid password');
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
-
-        const token = jwt.sign(
-            { userId: user.id, email: user.email },
-            'secretkey',
-            { expiresIn: '1h' }
-        );
-
-        logger.info('User logged in successfully:', user.id);
-        res.status(200).json({ token, userId: user.id });
-    } catch (err) {
-        logger.error('Login failed:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+exports.postLogout = (req, res, next) => {
+    res.clearCookie('token');
+    res.redirect('/auth/login');
 };

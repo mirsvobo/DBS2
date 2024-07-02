@@ -1,8 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const StudyField = require('./studyField');
-const University = require('./university');
-const Dorm = require('./dorm');
 
 const User = sequelize.define('User', {
     firstName: {
@@ -21,11 +18,35 @@ const User = sequelize.define('User', {
     password: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    role: {
+        type: DataTypes.ENUM,
+        values: ['user', 'admin'],
+        defaultValue: 'user'
+    },
+    studyFieldId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'StudyFields',
+            key: 'id'
+        }
+    },
+    universityId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'Universities',
+            key: 'id'
+        }
+    },
+    dormId: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: 'Dorms',
+            key: 'id'
+        }
     }
+}, {
+    timestamps: true
 });
-
-User.belongsTo(StudyField, { foreignKey: 'studyFieldId' });
-User.belongsTo(University, { foreignKey: 'universityId' });
-User.belongsTo(Dorm, { foreignKey: 'dormId' });
 
 module.exports = User;

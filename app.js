@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const sequelize = require('./config/database');
 const logger = require('./config/logger');
+const isAuth = require('./middleware/isAuth');
 
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
@@ -23,13 +24,18 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/auth', authRoutes);
-app.use('/posts', postRoutes);
-app.use('/comments', commentRoutes);
-app.use('/users', userRoutes);
-app.use('/messages', messageRoutes);
+app.use((req, res, next) => {
+    res.locals.user = req.user || null;
+    next();
+});
 
-app.get('/', (req, res) => {
+app.use('/auth', authRoutes);
+app.use('/posts', isAuth, postRoutes);
+app.use('/comments', isAuth, commentRoutes);
+app.use('/users', isAuth, userRoutes);
+app.use('/messages', isAuth, messageRoutes);
+
+app.get('/', isAuth, (req, res) => { // Ochráníme i kořenovou trasu
     res.redirect('/posts');
 });
 

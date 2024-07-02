@@ -1,27 +1,34 @@
 const jwt = require('jsonwebtoken');
-const logger = require('../config/logger');
+const User = require('../models/user');
 
-module.exports = (req, res, next) => {
-    const authHeader = req.get('Authorization');
-    if (!authHeader) {
-        logger.warn('No Authorization header provided');
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const token = authHeader.split(' ')[1];
-    let decodedToken;
+const isAuth = async (req, res, next) => {
     try {
-        decodedToken = jwt.verify(token, 'secretkey');
+        const token = req.cookies.token;
+        if (!token) {
+            return res.redirect('/auth/login');
+        }
+
+        let decodedToken;
+        try {
+            decodedToken = jwt.verify(token, 'your_secret_key');
+        } catch (err) {
+            return res.redirect('/auth/login');
+        }
+
+        if (!decodedToken) {
+            return res.redirect('/auth/login');
+        }
+
+        const user = await User.findByPk(decodedToken.userId);
+        if (!user) {
+            return res.redirect('/auth/login');
+        }
+
+        req.user = user;
+        next();
     } catch (err) {
-        logger.error('Failed to verify token:', err);
-        return res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
-
-    if (!decodedToken) {
-        logger.warn('Token verification failed');
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    req.userId = decodedToken.userId;
-    next();
 };
+
+module.exports = isAuth;

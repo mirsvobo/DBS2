@@ -1,95 +1,108 @@
+const { validationResult } = require('express-validator');
 const Post = require('../models/post');
-const Like = require('../models/like');
-const logger = require('../config/logger');
 
-exports.createPost = async (req, res) => {
-    const { title, content } = req.body;
-    const userId = req.userId;
-
-    try {
-        const post = await Post.create({ title, content, userId });
-        logger.info('Post created successfully:', post.id);
-        res.status(201).json({ message: 'Post created!', postId: post.id });
-    } catch (err) {
-        logger.error('Post creation failed:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
-
-exports.getPosts = async (req, res) => {
+exports.getPosts = async (req, res, next) => {
     try {
         const posts = await Post.findAll();
-        logger.info('Posts retrieved successfully');
-        res.render('posts/index', { posts });
+        res.render('posts/index', { posts, user: req.user });
     } catch (err) {
-        logger.error('Failed to retrieve posts:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 
-exports.updatePost = async (req, res) => {
-    const { title, content } = req.body;
-    const postId = req.params.postId;
-    const userId = req.userId;
+exports.getCreatePost = (req, res, next) => {
+    res.render('posts/create', { user: req.user });
+};
+
+exports.createPost = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render('posts/create', {
+            user: req.user,
+            errorMessage: errors.array()[0].msg
+        });
+    }
 
     try {
+        const { title, content } = req.body;
+        const post = await Post.create({
+            title,
+            content,
+            userId: req.user.id
+        });
+        res.redirect('/posts');
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getEditPost = async (req, res, next) => {
+    try {
+        const postId = req.params.id;
         const post = await Post.findByPk(postId);
-        if (post.userId !== userId) {
-            logger.warn('Unauthorized attempt to update post:', postId);
-            return res.status(403).json({ error: 'Not authorized' });
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
         }
-        await Post.update({ title, content }, { where: { id: postId } });
-        logger.info('Post updated successfully:', postId);
-        res.status(200).json({ message: 'Post updated!' });
+
+        res.render('posts/edit', { post, user: req.user });
     } catch (err) {
-        logger.error('Post update failed:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 
-exports.deletePost = async (req, res) => {
-    const postId = req.params.postId;
-    const userId = req.userId;
-
-    try {
+exports.editPost = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        const postId = req.params.id;
         const post = await Post.findByPk(postId);
-        if (post.userId !== userId) {
-            logger.warn('Unauthorized attempt to delete post:', postId);
-            return res.status(403).json({ error: 'Not authorized' });
+
+        return res.status(422).render('posts/edit', {
+            post,
+            user: req.user,
+            errorMessage: errors.array()[0].msg
+        });
+    }
+
+    try {
+        const postId = req.params.id;
+        const post = await Post.findByPk(postId);
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
         }
-        await Post.destroy({ where: { id: postId } });
-        logger.info('Post deleted successfully:', postId);
-        res.status(200).json({ message: 'Post deleted!' });
+
+        if (post.userId !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const { title, content } = req.body;
+        post.title = title;
+        post.content = content;
+        await post.save();
+
+        res.redirect('/posts');
     } catch (err) {
-        logger.error('Post deletion failed:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 
-exports.likePost = async (req, res) => {
-    const postId = req.params.postId;
-    const userId = req.userId;
-
+exports.deletePost = async (req, res, next) => {
     try {
-        const like = await Like.create({ postId, userId });
-        logger.info('Post liked successfully:', like.id);
-        res.status(201).json({ message: 'Post liked!', likeId: like.id });
-    } catch (err) {
-        logger.error('Failed to like post:', err);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-};
+        const postId = req.params.id;
+        const post = await Post.findByPk(postId);
 
-exports.unlikePost = async (req, res) => {
-    const postId = req.params.postId;
-    const userId = req.userId;
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
 
-    try {
-        await Like.destroy({ where: { postId, userId } });
-        logger.info('Post unliked successfully:', postId);
-        res.status(200).json({ message: 'Post unliked!' });
+        if (post.userId !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        await post.destroy();
+        res.redirect('/posts');
     } catch (err) {
-        logger.error('Failed to unlike post:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
