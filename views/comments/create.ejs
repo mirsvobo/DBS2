@@ -1,0 +1,11 @@
+<% include ../partials/header %>
+<h2>Create Comment</h2>
+<form action="/comments/create" method="post">
+    <input type="hidden" name="postId" value="<%= postId %>">
+    <div class="mb-3">
+        <label for="content" class="form-label">Content</label>
+        <textarea class="form-control" id="content" name="content" rows="5" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Comment</button>
+</form>
+<% include ../partials/footer %>

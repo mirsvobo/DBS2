@@ -23,4 +23,37 @@ exports.getComments = async (req, res) => {
     }
 };
 
-// Přidej další metody pro update a delete
+exports.updateComment = async (req, res) => {
+    const { content } = req.body;
+    const commentId = req.params.commentId;
+    const userId = req.userId;
+
+    try {
+        const comment = await Comment.findByPk(commentId);
+        if (comment.userId !== userId) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+        await Comment.update({ content }, { where: { id: commentId } });
+        res.status(200).json({ message: 'Comment updated!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+exports.deleteComment = async (req, res) => {
+    const commentId = req.params.commentId;
+    const userId = req.userId;
+
+    try {
+        const comment = await Comment.findByPk(commentId);
+        if (comment.userId !== userId) {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+        await Comment.destroy({ where: { id: commentId } });
+        res.status(200).json({ message: 'Comment deleted!' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};

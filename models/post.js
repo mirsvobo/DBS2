@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const User = require('./user');
 
 const Post = sequelize.define('Post', {
     title: {
@@ -9,14 +10,9 @@ const Post = sequelize.define('Post', {
     content: {
         type: DataTypes.TEXT,
         allowNull: false
-    },
-    userId: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: 'Users',
-            key: 'id'
-        }
     }
 });
+
+Post.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = Post;
