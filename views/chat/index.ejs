@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 80vh;
+        }
+
+        .user-list {
+            width: 20%;
+            border-right: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        .user-list a {
+            display: block;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .user-list a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .chat-box {
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .message.sent {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+        }
+
+        .message.received {
+            background-color: #fff;
+            align-self: flex-start;
+            border: 1px solid #ddd;
+        }
+
+        .message .sender {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .message-form {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        .message-form input {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .user-details {
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-details h5 {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .user-details p {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">University Forum</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <% if (user) { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/posts">Posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/chat">Chat</a>
+                    </li>
+                    <li class="nav-item">
+                        <form class="d-inline" action="/auth/logout" method="post">
+                            <button type="submit" class="btn btn-link nav-link">Logout</button>
+                        </form>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/register">Register</a>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <h2>Chat</h2>
+    <div class="chat-container">
+        <div class="user-list">
+            <h4>Users</h4>
+            <% users.forEach(user => { %>
+                <a href="#" data-user-id="<%= user.id %>"><%= user.firstName %> <%= user.lastName %></a>
+            <% }) %>
+        </div>
+        <div class="chat-box">
+            <div id="userDetails" class="user-details">
+                <h5 id="userName">Select a user to start chatting</h5>
+                <p id="userUniversity"></p>
+                <p id="userDorm"></p>
+                <p id="userStudyField"></p>
+            </div>
+            <div class="messages" id="messages"></div>
+            <form class="message-form" id="messageForm">
+                <input type="text" id="messageInput" placeholder="Type your message here..." required>
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        let selectedUserId = null;
+
+        $('.user-list a').click(function (e) {
+            e.preventDefault();
+            selectedUserId = $(this).data('user-id');
+            loadMessages(selectedUserId);
+            loadUserDetails(selectedUserId);
+        });
+
+        $('#messageForm').submit(function (e) {
+            e.preventDefault();
+            const messageContent = $('#messageInput').val();
+            if (messageContent && selectedUserId) {
+                $.post('/chat/send', {
+                    receiverId: selectedUserId,
+                    content: messageContent
+                }).done(function (message) {
+                    $('#messageInput').val('');
+                    loadMessages(selectedUserId);
+                });
+            }
+        });
+
+        function loadMessages(userId) {
+            $.get(`/chat/${userId}`, function (messages) {
+                const messagesContainer = $('#messages');
+                messagesContainer.empty();
+                if (messages.length === 0) {
+                    const noMessagesElement = $('<div>').text('No messages yet. Start the conversation!');
+                    messagesContainer.append(noMessagesElement);
+                } else {
+                    messages.forEach(message => {
+                        const messageElement = $('<div>').addClass('message');
+                        messageElement.text(message.content);
+                        const senderElement = $('<div>').addClass('sender').text(`${message.sender.firstName} ${message.sender.lastName}`);
+                        messageElement.append(senderElement);
+                        if (message.senderId === <%= user.id %>) {
+                            messageElement.addClass('sent');
+                        } else {
+                            messageElement.addClass('received');
+                        }
+                        messagesContainer.append(messageElement);
+                    });
+                    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+                }
+            });
+        }
+
+        function loadUserDetails(userId) {
+            $.get(`/users/${userId}`, function (user) {
+                $('#userName').text(`${user.firstName} ${user.lastName}`);
+                $('#userUniversity').text(`University: ${user.University ? user.University.name : 'N/A'}`);
+                $('#userDorm').text(`Dorm: ${user.Dorm ? user.Dorm.name : 'N/A'}`);
+                $('#userStudyField').text(`Field of Study: ${user.StudyField ? user.StudyField.name : 'N/A'}`);
+            });
+        }
+    });
+</script>
+</body>
+
+</html>

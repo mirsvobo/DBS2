@@ -1,27 +1,64 @@
 const Message = require('../models/message');
-const logger = require('../config/logger');
+const User = require('../models/user');
+const { Op } = require('sequelize');
 
-exports.sendMessage = async (req, res) => {
-    const { content, receiverId } = req.body;
-    const senderId = req.userId;
-
+exports.sendMessage = async (req, res, next) => {
     try {
-        const message = await Message.create({ content, senderId, receiverId });
-        logger.info('Message sent successfully:', message.id);
-        res.status(201).json({ message: 'Message sent!', messageId: message.id });
+        const { receiverId, content } = req.body;
+        if (!receiverId || !content) {
+            return res.status(400).json({ error: 'Receiver ID and content are required' });
+        }
+        const message = await Message.create({
+            content,
+            senderId: req.user.id,
+            receiverId
+        });
+        res.status(201).json(message);
     } catch (err) {
-        logger.error('Message sending failed:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err);
     }
 };
 
-exports.getMessages = async (req, res) => {
+exports.getMessages = async (req, res, next) => {
     try {
-        const messages = await Message.findAll({ where: { receiverId: req.userId } });
-        logger.info('Messages retrieved successfully');
-        res.status(200).json({ messages });
+        const { userId } = req.params;
+        const messages = await Message.findAll({
+            where: {
+                [Op.or]: [
+                    { senderId: req.user.id, receiverId: userId },
+                    { senderId: userId, receiverId: req.user.id }
+                ]
+            },
+            include: [
+                { model: User, as: 'sender', attributes: ['firstName', 'lastName'] },
+                { model: User, as: 'receiver', attributes: ['firstName', 'lastName'] }
+            ],
+            order: [['createdAt', 'ASC']]
+        });
+        res.status(200).json(messages);
     } catch (err) {
-        logger.error('Failed to retrieve messages:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Error fetching messages:', err);
+        next(err);
+    }
+};
+
+exports.getChat = async (req, res, next) => {
+    try {
+        const users = await User.findAll({
+            where: {
+                id: {
+                    [Op.ne]: req.user.id
+                }
+            },
+            attributes: ['id', 'firstName', 'lastName']
+        });
+        res.render('chat/index', {
+            title: 'Chat',
+            user: req.user,
+            users: users
+        });
+    } catch (err) {
+        console.error('Error fetching users for chat:', err);
+        next(err);
     }
 };

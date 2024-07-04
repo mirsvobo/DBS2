@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const userRoutes = require('./routes/userRoutes');
+const chatRoutes = require('./routes/chatRoutes'); // Import chat routes
 const jwt = require('jsonwebtoken');
 
 const app = express();
@@ -35,7 +36,8 @@ app.use(async (req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/posts', postRoutes);
 app.use('/comments', commentRoutes);
-app.use('/users', userRoutes); // Include user routes
+app.use('/users', userRoutes);
+app.use('/chat', chatRoutes); // Přidat trasy pro chat
 
 app.get('/', (req, res, next) => {
     if (req.user) {
@@ -46,7 +48,8 @@ app.get('/', (req, res, next) => {
 
 const initDatabase = async () => {
     try {
-        await sequelize.sync({ alter: true });
+        await sequelize.sync({ force: false });
+
         console.log('Database synchronized');
     } catch (error) {
         console.error('Error synchronizing database:', error);
