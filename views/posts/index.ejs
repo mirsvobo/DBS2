@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,7 +107,6 @@
         }
     </style>
 </head>
-
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
     <div class="container-fluid">
@@ -157,6 +155,16 @@
                 <% if (user) { %>
                     <a href="/posts/create" class="btn btn-primary w-100">Create Post</a>
                 <% } %>
+                <hr>
+                <h4>Universities</h4>
+                <form id="filterForm" action="/posts" method="get">
+                    <select class="form-select" id="universityFilter" name="universityId" onchange="document.getElementById('filterForm').submit()">
+                        <option value="" <%= !selectedUniversityId ? 'selected' : '' %>>All Universities</option>
+                        <% universities.forEach(university => { %>
+                            <option value="<%= university.id %>" <%= university.id == selectedUniversityId ? 'selected' : '' %>><%= university.name %></option>
+                        <% }) %>
+                    </select>
+                </form>
             </div>
         </div>
         <div class="col-md-9">
@@ -197,5 +205,4 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
 </body>
-
 </html>

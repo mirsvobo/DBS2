@@ -3,11 +3,23 @@ const Post = require('../models/post');
 const Category = require('../models/category');
 const User = require('../models/user');
 const Comment = require('../models/comment');
+const University = require('../models/university'); // Přidejte tento řádek
 
 exports.getPosts = async (req, res, next) => {
     try {
         const categoryId = req.query.categoryId || null;
-        const whereCondition = categoryId ? { categoryId } : {};
+        const universityId = req.query.universityId || null;
+        const whereCondition = {};
+
+        if (categoryId) {
+            whereCondition.categoryId = categoryId;
+        }
+
+        if (universityId) {
+            const users = await User.findAll({ where: { universityId } });
+            const userIds = users.map(user => user.id);
+            whereCondition.userId = userIds;
+        }
 
         const posts = await Post.findAll({
             where: whereCondition,
@@ -18,6 +30,7 @@ exports.getPosts = async (req, res, next) => {
         });
 
         const categories = await Category.findAll();
+        const universities = await University.findAll();
         const recentPosts = await Post.findAll({
             limit: 5,
             order: [['createdAt', 'DESC']],
@@ -31,8 +44,10 @@ exports.getPosts = async (req, res, next) => {
             title: 'Forum',
             posts: posts,
             categories: categories,
+            universities: universities,
             recentPosts: recentPosts,
             selectedCategoryId: categoryId,
+            selectedUniversityId: universityId,
             user: req.user  // Ensure user is passed to the template
         });
     } catch (err) {
@@ -153,7 +168,7 @@ exports.getPost = async (req, res, next) => {
             include: [
                 { model: User, attributes: ['firstName', 'lastName'] },
                 { model: Category, attributes: ['name'] },
-                { model: Comment, include: [User] } // Ujistěte se, že zahrnujete komentáře
+                { model: Comment, include: [User] }
             ]
         });
 
