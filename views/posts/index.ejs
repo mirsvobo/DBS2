@@ -64,6 +64,16 @@
             <a href="/posts/create" class="btn btn-primary">Create Post</a>
         <% } %>
     </div>
+    <div class="mb-4">
+        <form id="filterForm" action="/posts" method="get" class="d-flex align-items-center">
+            <select class="form-select" id="categoryFilter" name="categoryId" onchange="document.getElementById('filterForm').submit()">
+                <option value="" <%= !selectedCategoryId ? 'selected' : '' %>>All Categories</option>
+                <% categories.forEach(category => { %>
+                    <option value="<%= category.id %>" <%= category.id == selectedCategoryId ? 'selected' : '' %>><%= category.name %></option>
+                <% }) %>
+            </select>
+        </form>
+    </div>
     <div class="list-group">
         <% if (posts && posts.length > 0) { %>
             <% posts.forEach(post => { %>

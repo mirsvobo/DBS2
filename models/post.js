@@ -1,36 +1,21 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const User = require('./user');
-const Category = require('./category');
 
 const Post = sequelize.define('Post', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true
+    },
     title: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
     },
     content: {
         type: DataTypes.TEXT,
-        allowNull: false,
-    },
-    categoryId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        references: {
-            model: Category,
-            key: 'id'
-        }
-    },
-    userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: User,
-            key: 'id'
-        }
+        allowNull: false
     }
 });
-
-Post.belongsTo(User, { foreignKey: 'userId' });
-Post.belongsTo(Category, { foreignKey: 'categoryId' });
 
 module.exports = Post;

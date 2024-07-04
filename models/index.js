@@ -1,32 +1,36 @@
+const Sequelize = require('sequelize');
 const sequelize = require('../config/database');
+
 const User = require('./user');
-const Category = require('./category');
 const Post = require('./post');
+const Comment = require('./comment');
+const Category = require('./category');
 const University = require('./university');
 const Dorm = require('./dorm');
 const StudyField = require('./studyField');
 
-// Associations
-Category.hasMany(Post, { foreignKey: 'categoryId' });
-Post.belongsTo(Category, { foreignKey: 'categoryId' });
+// Define associations
+User.belongsTo(StudyField, { foreignKey: 'studyFieldId' });
+User.belongsTo(University, { foreignKey: 'universityId' });
+User.belongsTo(Dorm, { foreignKey: 'dormId' });
+User.hasMany(Post, { foreignKey: 'userId' });
+User.hasMany(Comment, { foreignKey: 'userId' });
 
 Post.belongsTo(User, { foreignKey: 'userId' });
-User.hasMany(Post, { foreignKey: 'userId' });
+Post.belongsTo(Category, { foreignKey: 'categoryId' });
+Post.hasMany(Comment, { foreignKey: 'postId' });
 
-User.belongsTo(University, { foreignKey: 'universityId' });
-University.hasMany(User, { foreignKey: 'universityId' });
+Comment.belongsTo(User, { foreignKey: 'userId' });
+Comment.belongsTo(Post, { foreignKey: 'postId' });
 
-User.belongsTo(Dorm, { foreignKey: 'dormId' });
-Dorm.hasMany(User, { foreignKey: 'dormId' });
-
-User.belongsTo(StudyField, { foreignKey: 'studyFieldId' });
-StudyField.hasMany(User, { foreignKey: 'studyFieldId' });
+Category.hasMany(Post, { foreignKey: 'categoryId' });
 
 module.exports = {
     sequelize,
     User,
-    Category,
     Post,
+    Comment,
+    Category,
     University,
     Dorm,
     StudyField

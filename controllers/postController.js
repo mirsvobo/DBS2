@@ -6,8 +6,35 @@ const Comment = require('../models/comment');
 
 exports.getPosts = async (req, res, next) => {
     try {
-        const posts = await Post.findAll({ include: [Category, User] });
-        res.render('posts/index', { posts, user: req.user });
+        const categoryId = req.query.categoryId || null;
+        const whereCondition = categoryId ? { categoryId } : {};
+
+        const posts = await Post.findAll({
+            where: whereCondition,
+            include: [
+                { model: User, attributes: ['firstName', 'lastName'] },
+                { model: Category, attributes: ['name'] }
+            ]
+        });
+
+        const categories = await Category.findAll();
+        const recentPosts = await Post.findAll({
+            limit: 5,
+            order: [['createdAt', 'DESC']],
+            include: [
+                { model: User, attributes: ['firstName', 'lastName'] },
+                { model: Category, attributes: ['name'] }
+            ]
+        });
+
+        res.render('posts/index', {
+            title: 'Forum',
+            posts: posts,
+            categories: categories,
+            recentPosts: recentPosts,
+            selectedCategoryId: categoryId,
+            user: req.user  // Ensure user is passed to the template
+        });
     } catch (err) {
         next(err);
     }
@@ -122,15 +149,24 @@ exports.deletePost = async (req, res, next) => {
 exports.getPost = async (req, res, next) => {
     try {
         const postId = req.params.id;
-        const post = await Post.findByPk(postId, { include: [Category, User] });
+        const post = await Post.findByPk(postId, {
+            include: [
+                { model: User, attributes: ['firstName', 'lastName'] },
+                { model: Category, attributes: ['name'] },
+                { model: Comment, include: [User] } // Ujistěte se, že zahrnujete komentáře
+            ]
+        });
+
         if (!post) {
             return res.status(404).json({ message: 'Post not found' });
         }
+
         const comments = await Comment.findAll({
             where: { postId },
             include: [User],
             order: [['createdAt', 'DESC']]
         });
+
         res.render('posts/view', { post, comments, user: req.user });
     } catch (err) {
         next(err);
