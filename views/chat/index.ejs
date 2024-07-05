@@ -34,6 +34,11 @@
             background-color: #f1f1f1;
         }
 
+        .user-list a.active {
+            background-color: #007bff;
+            color: white;
+        }
+
         .chat-box {
             width: 80%;
             display: flex;
@@ -85,25 +90,6 @@
             margin-right: 10px;
         }
 
-        .user-details {
-            padding: 15px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-details h5 {
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .user-details p {
-            margin: 5px 0;
-            color: #666;
-        }
     </style>
 </head>
 
@@ -155,12 +141,6 @@
             <% }) %>
         </div>
         <div class="chat-box">
-            <div id="userDetails" class="user-details">
-                <h5 id="userName">Select a user to start chatting</h5>
-                <p id="userUniversity"></p>
-                <p id="userDorm"></p>
-                <p id="userStudyField"></p>
-            </div>
             <div class="messages" id="messages"></div>
             <form class="message-form" id="messageForm">
                 <input type="text" id="messageInput" placeholder="Type your message here..." required>
@@ -177,8 +157,9 @@
         $('.user-list a').click(function (e) {
             e.preventDefault();
             selectedUserId = $(this).data('user-id');
+            $('.user-list a').removeClass('active');
+            $(this).addClass('active');
             loadMessages(selectedUserId);
-            loadUserDetails(selectedUserId);
         });
 
         $('#messageForm').submit(function (e) {
@@ -220,14 +201,6 @@
             });
         }
 
-        function loadUserDetails(userId) {
-            $.get(`/users/${userId}`, function (user) {
-                $('#userName').text(`${user.firstName} ${user.lastName}`);
-                $('#userUniversity').text(`University: ${user.University ? user.University.name : 'N/A'}`);
-                $('#userDorm').text(`Dorm: ${user.Dorm ? user.Dorm.name : 'N/A'}`);
-                $('#userStudyField').text(`Field of Study: ${user.StudyField ? user.StudyField.name : 'N/A'}`);
-            });
-        }
     });
 </script>
 </body>
