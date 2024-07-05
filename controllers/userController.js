@@ -86,7 +86,11 @@ exports.getUserDetails = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const user = await User.findByPk(userId, {
-            include: [University, Dorm, StudyField]
+            include: [
+                { model: University, as: 'university' },
+                { model: Dorm, as: 'dorm' },
+                { model: StudyField, as: 'studyField' }
+            ]
         });
 
         if (!user) {
