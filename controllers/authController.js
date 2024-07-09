@@ -36,7 +36,8 @@ exports.postRegister = async (req, res) => {
 };
 
 exports.getLogin = (req, res) => {
-    res.render('auth/login');
+    const error = req.query.error;
+    res.render('auth/login', { error });
 };
 
 exports.postLogin = async (req, res) => {
@@ -44,18 +45,18 @@ exports.postLogin = async (req, res) => {
     try {
         const user = await User.findOne({ where: { email } });
         if (!user) {
-            return res.redirect('/auth/login');
+            return res.redirect('/auth/login?error=Invalid email or password');
         }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.redirect('/auth/login');
+            return res.redirect('/auth/login?error=Invalid email or password');
         }
         const token = jwt.sign({ userId: user.id }, 'your_secret_key');
         res.cookie('token', token, { httpOnly: true });
         res.redirect('/posts');
     } catch (err) {
         console.error(err);
-        res.redirect('/auth/login');
+        res.redirect('/auth/login?error=Something went wrong, please try again');
     }
 };
 
