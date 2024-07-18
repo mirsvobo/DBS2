@@ -17,7 +17,7 @@ const Message = sequelize.define('Message', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'users', // Model musí být správně pojmenován
+            model: 'users',
             key: 'id'
         }
     },
@@ -25,7 +25,7 @@ const Message = sequelize.define('Message', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'users', // Model musí být správně pojmenován
+            model: 'users',
             key: 'id'
         }
     }

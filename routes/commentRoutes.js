@@ -9,7 +9,7 @@ router.post('/create', isAuth, [
     body('content').trim().isLength({ min: 1 }).withMessage('Content is required')
 ], commentController.createComment);
 
-router.get('/edit/:id', isAuth, commentController.getEditComment); // Přidáno
+router.get('/edit/:id', isAuth, commentController.getEditComment);
 router.post('/edit/:id', isAuth, [
     body('content').trim().isLength({ min: 1 }).withMessage('Content is required')
 ], commentController.editComment);

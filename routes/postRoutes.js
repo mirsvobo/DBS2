@@ -13,7 +13,7 @@ router.post('/create', isAuth, [
     body('categoryId').isInt().withMessage('Category is required')
 ], postController.createPost);
 
-router.get('/:id', isAuth, postController.getPost);  // Ujistěte se, že máte tuto cestu
+router.get('/:id', isAuth, postController.getPost);
 router.get('/edit/:id', isAuth, postController.getEditPost);
 router.post('/edit/:id', isAuth, [
     body('title').trim().isLength({ min: 1 }).withMessage('Title is required'),

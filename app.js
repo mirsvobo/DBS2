@@ -37,8 +37,8 @@ app.use(async (req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/posts', postRoutes);
 app.use('/comments', commentRoutes);
-app.use('/users', userRoutes); // Include user routes
-app.use('/chat', chatRoutes);  // Include chat routes
+app.use('/users', userRoutes);
+app.use('/chat', chatRoutes);
 
 app.get('/', (req, res, next) => {
     if (req.user) {

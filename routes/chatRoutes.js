@@ -11,6 +11,6 @@ router.post('/send', isAuth, [
 ], messageController.sendMessage);
 
 router.get('/:userId', isAuth, messageController.getMessages);
-router.get('/', isAuth, messageController.getChat); // Přidat trasu pro načtení chatovací stránky
+router.get('/', isAuth, messageController.getChat);
 
 module.exports = router;
